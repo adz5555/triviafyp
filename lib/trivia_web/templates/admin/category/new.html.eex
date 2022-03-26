@@ -1,0 +1,11 @@
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-sm">
+      <%= link "Back", to: Routes.admin_category_path(@conn, :index), class: "btn btn-outline-secondary" %>
+    </div>
+  </div>
+
+  <h1>New Category</h1>
+
+  <%= render "form.html", Map.put(assigns, :action, Routes.admin_category_path(@conn, :create)) %>
+</div>

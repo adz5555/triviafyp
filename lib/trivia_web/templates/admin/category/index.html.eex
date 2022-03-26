@@ -1,0 +1,39 @@
+<div class="container">
+  <div class = "row">
+    <div class="col-sm">
+      <h1>Categories</h1>
+    </div>
+    <div class="col-sm">
+       <%= link "New Category", to: Routes.admin_category_path(@conn, :new), class: "btn btn-primary float-right" %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm">
+      <table class="table table-striped">
+
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Category ID</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for category <- @categories do %>
+    <tr>
+      <td><%= link category.name, to: Routes.admin_category_path(@conn, :show, category) %></td>
+      <td><%= category.cat_id %></td>
+
+      <td>
+        <span><%= link "Edit", to: Routes.admin_category_path(@conn, :edit, category) %></span>
+        <span class="ml-3"><%= link "Delete", to: Routes.admin_category_path(@conn, :delete, category), method: :delete, data: [confirm: "Are you sure?"] %></span>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
