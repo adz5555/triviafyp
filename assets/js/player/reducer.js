@@ -56,7 +56,8 @@ const reducer = (state = initialState, action = {}) => {
         ...state,
         scene: action.scene,
         current_question: action.current_question,
-        players_answer: action.players_answer
+        player: action.player,
+        answer: action.answer
       };
     default:
       return state;
