@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const Answering = ({ players, answered, dispatch, channel, current_question }) => {
+const Answering = ({ dispatch, channel, current_question, answered }) => {
   const classes = useStyles()
 
     const option_list = current_question.options.map((option, index) => (
@@ -44,11 +44,12 @@ const Answering = ({ players, answered, dispatch, channel, current_question }) =
 
 
 function mapStateToProps(state) {
-  const { channel, current_question } = state
+  const { channel, current_question, answered } = state
 
   return {
     channel,
-    current_question
+    current_question,
+    answered
   }
 }
 
