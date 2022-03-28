@@ -7,6 +7,7 @@ defmodule Trivia.Games.Player do
     field :score, :integer
     belongs_to :room, Trivia.Games.Room
     field :answered, :boolean, default: false
+    field :answer, :string
 
     timestamps()
   end
