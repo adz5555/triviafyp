@@ -258,7 +258,4 @@ defmodule TriviaWeb.RoomChannel.Player do
 
   # Validate that the randomly selected presence is a player
   defp random_player?(_presences, %{type: "player"} = player), do: player
-  defp random_player?(presences, %{type: "audience"}) do
-    pick_random_online_player(presences)
-  end
 end
