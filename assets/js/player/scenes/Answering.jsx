@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const Answering = ({ player, dispatch, channel, current_question }) => {
+const Answering = ({ players, answered, dispatch, channel, current_question }) => {
   const classes = useStyles()
 
     const option_list = current_question.options.map((option, index) => (
@@ -26,7 +26,7 @@ const Answering = ({ player, dispatch, channel, current_question }) => {
     ))
     return (
       <Box className={classes.centeredText}>
-      {!player.answered && (
+      {!answered && (
         <>
           <Typography variant="h5" gutterBottom className={classes.title}>
             {current_question.prompt}
@@ -35,7 +35,7 @@ const Answering = ({ player, dispatch, channel, current_question }) => {
         </>
       )}
 
-      {player.answered && (
+      {answered && (
         <Typography variant="body1">Waiting for other players to answer...</Typography>
       )}
       </Box>
@@ -44,10 +44,9 @@ const Answering = ({ player, dispatch, channel, current_question }) => {
 
 
 function mapStateToProps(state) {
-  const { player, channel, current_question } = state
+  const { channel, current_question } = state
 
   return {
-    player,
     channel,
     current_question
   }

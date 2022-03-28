@@ -1,3 +1,4 @@
+
 defmodule TriviaWeb.RoomChannel.Player do
   import Phoenix.Channel, only: [push: 3, broadcast!: 3]
   import Phoenix.Socket, only: [assign: 3]
@@ -24,6 +25,7 @@ defmodule TriviaWeb.RoomChannel.Player do
       response = %{
         player: player_info,
         scene: player.room.current_scene,
+        presences: Presence.list(socket),
         is_choosing: player.id == player.room.chooser_id,
         categories: player.room.category_choices || [],
         questions: player.room.questions || [],
@@ -71,27 +73,19 @@ defmodule TriviaWeb.RoomChannel.Player do
   end
 
   # Player selects a category
-  def select_category(%{"category" => category}, socket) do
+  def select_category(%{"category" => category}, %{assigns: %{current_player_id: _player_id}} = socket) do
     category_id = Content.get_category_by_name!(category).cat_id
     questions = get_questions(socket, category_id)
     current_question = set_current_question(socket, questions)
-    player = getCurrentPlayer(socket)
+    players = getCurrentPlayers(socket)
     allanswered = checkAllPlayersAnswered(socket)
-
-    player_info = %{
-      name: player.name,
-      id: player.id,
-      is_lead: Presence.list(socket) |> Enum.empty?,
-      score: player.score,
-      answered: player.answered
-    }
 
     response = %{
       scene: "answering",
       category: category,
       questions: questions,
       current_question: current_question,
-      player: player_info,
+      players: players,
       allanswered: allanswered
     }
 
@@ -105,34 +99,25 @@ defmodule TriviaWeb.RoomChannel.Player do
   end
 
   # Player answers a question
-  def select_option(%{"selected" => selected}, socket) do
+  def select_option(%{"selected" => selected}, %{assigns: %{current_player_id: _player_id}} = socket) do
     checkAnswer(socket, selected)
     questions = getQuestionData(socket)
     current_question = getCurrentQuestionData(socket)
-    player = getCurrentPlayer(socket)
+    players = getCurrentPlayers(socket)
     allanswered = checkAllPlayersAnswered(socket)
 
-    cond do
-    allanswered == false ->
-      player_info = %{
-        name: player.name,
-        id: player.id,
-        is_lead: Presence.list(socket) |> Enum.empty?,
-        score: player.score,
-        answered: player.answered
-      }
-
+    if allanswered === false do
       response = %{
         scene: "answering",
         questions: questions,
         current_question: current_question,
-        player: player_info,
+        players: players,
         allanswered: allanswered
       }
 
       send(self(), {:after_select_option_waiting, response})
       {:noreply, socket}
-    allanswered == true ->
+    else
       questionAnswered(socket)
 
       response = %{
@@ -230,22 +215,32 @@ defmodule TriviaWeb.RoomChannel.Player do
     Repo.get(Player, player_id)
   end
 
+  defp getCurrentPlayers(%{assigns: %{room_id: room_id, current_player_id: player_id}}) do
+    query =
+      from p in Player,
+      select: %{id: p.id, name: p.name, score: p.score, answered: p.answered},
+      where: p.room_id == ^room_id
+
+    Repo.all(query)
+  end
+
   defp checkAllPlayersAnswered(%{assigns: %{room_id: room_id, current_player_id: player_id}}) do
     query =
       from p in Player,
       select: p.answered,
       where: p.room_id == ^room_id
 
-    allanswered = true
-
-    for x <- Repo.all(query) do
-      cond do
-        x == false -> allanswered = false
-        true -> nil
+    try do
+     for x <- Repo.all(query) do
+      if x === true do
+        true
+      else
+        throw(:break)
       end
+     end
+    catch
+     :break -> false
     end
-
-    allanswered
   end
 
   defp questionAnswered(%{assigns: %{room_id: room_id}}) do
@@ -263,7 +258,5 @@ defmodule TriviaWeb.RoomChannel.Player do
 
   # Validate that the randomly selected presence is a player
   defp random_player?(_presences, %{type: "player"} = player), do: player
-  defp random_player?(presences, %{type: "audience"}) do
-    pick_random_online_player(presences)
-  end
 end
+

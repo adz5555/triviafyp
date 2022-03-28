@@ -49,7 +49,8 @@ const reducer = (state = initialState, action = {}) => {
         ...state,
         scene: action.scene,
         current_question: action.current_question,
-        player: action.player
+        answered: action.answered,
+	players: action.players
       };
     case ANSWER_DISPLAY:
       return {
