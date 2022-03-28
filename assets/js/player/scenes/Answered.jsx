@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const Answered = ({ dispatch, channel, current_question, players_answer }) => {
+const Answered = ({ dispatch, channel, current_question, player, answer }) => {
   const classes = useStyles()
 
     return (
@@ -22,7 +22,16 @@ const Answered = ({ dispatch, channel, current_question, players_answer }) => {
         The correct answer was {current_question.correct_option}
       </Typography>
       <Typography variant="h5" gutterBottom className={classes.title}>
-        You answered {players_answer}
+        {answer !== undefined && (
+          <>
+            You answered {answer}
+          </>
+        )}
+        {answer == undefined && (
+          <>
+            You answered {player.answer}
+          </>
+        )}
       </Typography>
       </Box>
     )
@@ -30,12 +39,13 @@ const Answered = ({ dispatch, channel, current_question, players_answer }) => {
 
 
 function mapStateToProps(state) {
-  const { channel, current_question, players_answer } = state
+  const { channel, current_question, player, answer } = state
 
   return {
     channel,
     current_question,
-    players_answer
+    player,
+    answer
   }
 }
 
