@@ -19,7 +19,8 @@ defmodule TriviaWeb.RoomChannel.Player do
         id: player.id,
         is_lead: Presence.list(socket) |> Enum.empty?,
         score: player.score,
-        answered: player.answered
+        answered: player.answered,
+        answer: player.answer
       }
       response = %{
         player: player_info,
@@ -123,7 +124,7 @@ defmodule TriviaWeb.RoomChannel.Player do
         scene: "answered",
         questions: questions,
         current_question: current_question,
-        players_answer: selected
+        players: players
       }
 
       send(self(), {:after_select_option_done, response})
@@ -217,7 +218,7 @@ defmodule TriviaWeb.RoomChannel.Player do
   defp getCurrentPlayers(%{assigns: %{room_id: room_id, current_player_id: player_id}}) do
     query =
       from p in Player,
-      select: %{id: p.id, name: p.name, score: p.score, answered: p.answered},
+      select: %{id: p.id, name: p.name, score: p.score, answered: p.answered, answer: p.answer},
       where: p.room_id == ^room_id
 
     Repo.all(query)
