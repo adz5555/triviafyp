@@ -84,9 +84,9 @@ defmodule Trivia.Content do
     cond do
      selected == Enum.at(current_answer, 0) ->
       incrementPlayerScore(player_id)
-      setPlayerAnswered(player_id)
+      setPlayerAnswered(player_id, selected)
      true ->
-      setPlayerAnswered(player_id)
+      setPlayerAnswered(player_id, selected)
     end
   end
 
@@ -99,10 +99,10 @@ defmodule Trivia.Content do
     Repo.update_all(query, [])
   end
 
-  def setPlayerAnswered(player_id) do
+  def setPlayerAnswered(player_id, selected) do
     query =
       from p in Player,
-      update: [set: [answered: true]],
+      update: [set: [answered: true, answer: ^selected]],
       where: p.id == ^player_id
 
     Repo.update_all(query, [])
