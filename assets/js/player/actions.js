@@ -98,14 +98,20 @@ const setupGameEvents = (channel, dispatch, player) => {
     });
   });
 
-  channel.on("answer_display", ({ scene, category, questions, current_question, players_answer }) => {
+  channel.on("answer_display", ({ scene, category, questions, current_question, players }) => {
+    const answer = players.filter(playerobj => (
+      player.id == playerobj.id
+    )).map(function(playerobj) {
+      return playerobj.answer;
+    });
+
     dispatch({
       type: ANSWER_DISPLAY,
       scene,
       category,
       questions,
       current_question,
-      players_answer
+      answer
     });
   });
 };
