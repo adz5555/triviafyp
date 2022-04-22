@@ -152,7 +152,7 @@ defmodule Trivia.Content do
     Enum.map(raw_questions_list, fn question ->
       Question.new(%{
         prompt: HtmlEntities.decode(question["question"]),
-        options: question["incorrect_answers"],
+        options: Enum.map(question["incorrect_answers"], fn option -> HtmlEntities.decode(option) end),
         correct_option: HtmlEntities.decode(question["correct_answer"])
       })
     end)
