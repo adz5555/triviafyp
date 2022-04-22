@@ -129,6 +129,7 @@ defmodule TriviaWeb.RoomChannel.Player do
         current_question: current_question,
         players: players,
         rounds: rounds
+      }
 
       send(self(), {:after_select_option_done, response})
       {:noreply, socket}
