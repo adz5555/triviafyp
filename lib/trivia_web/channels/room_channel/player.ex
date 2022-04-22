@@ -29,7 +29,8 @@ defmodule TriviaWeb.RoomChannel.Player do
         is_choosing: player.id == player.room.chooser_id,
         categories: player.room.category_choices || [],
         questions: player.room.questions || [],
-        current_question: player.room.current_question || %{}
+        current_question: player.room.current_question || %{},
+        rounds: player.room.rounds
       }
       send(self(), {:after_player_join, player_info})
       {:ok, response, assign(socket, :room_id, player.room.id)}
@@ -45,6 +46,7 @@ defmodule TriviaWeb.RoomChannel.Player do
       name: player.name,
       id: player.id,
       is_lead: player.is_lead,
+      score: player.score,
       online_at: inspect(System.system_time(:second)),
       type: "player"
     })
@@ -79,10 +81,10 @@ defmodule TriviaWeb.RoomChannel.Player do
     current_question = set_current_question(socket, questions)
     players = getCurrentPlayers(socket)
     allanswered = checkAllPlayersAnswered(socket)
+    rounds = getRounds(socket)
 
     response = %{
       scene: "answering",
-      category: category,
       questions: questions,
       current_question: current_question,
       players: players,
@@ -105,6 +107,7 @@ defmodule TriviaWeb.RoomChannel.Player do
     current_question = getCurrentQuestionData(socket)
     players = getCurrentPlayers(socket)
     allanswered = checkAllPlayersAnswered(socket)
+    rounds = getRounds(socket)
 
     if allanswered === false do
       response = %{
@@ -124,8 +127,8 @@ defmodule TriviaWeb.RoomChannel.Player do
         scene: "answered",
         questions: questions,
         current_question: current_question,
-        players: players
-      }
+        players: players,
+        rounds: rounds
 
       send(self(), {:after_select_option_done, response})
       {:noreply, socket}
@@ -139,6 +142,76 @@ defmodule TriviaWeb.RoomChannel.Player do
 
   def after_select_option_done(response, socket) do
     broadcast!(socket, "answer_display", response)
+    {:noreply, socket}
+  end
+
+  def next_question(_params, %{assigns: %{current_player_id: _player_id}} = socket) do
+    current_question = getCurrentQuestionData(socket)
+    questions = getQuestionData(socket)
+    questions = removeCurrentQuestion(socket, current_question, questions)
+    current_question = set_current_question(socket, questions)
+    resetPlayersAnswered(socket)
+    players = getCurrentPlayers(socket)
+    allanswered = checkAllPlayersAnswered(socket)
+
+    response = %{
+      scene: "answering",
+      questions: questions,
+      current_question: current_question,
+      players: players,
+      allanswered: allanswered
+    }
+
+    send(self(), {:after_next_question, response})
+    {:noreply, socket}
+  end
+
+  def after_next_question(response, socket) do
+    broadcast!(socket, "question_display", response)
+    {:noreply, socket}
+  end
+
+  def next_round(_params, %{assigns: %{current_player_id: _player_id}} = socket) do
+    resetPlayersAnswered(socket)
+    reduceRounds(socket)
+    chooser = set_chooser(socket)
+    categories = set_choices(socket)
+
+    response = %{
+      scene: "select-category",
+      chooser: chooser,
+      categories: categories
+    }
+
+    send(self(), {:after_next_round, response})
+    {:noreply, socket}
+  end
+
+  def after_next_round(response, socket) do
+    broadcast!(socket, "category_select", response)
+    {:noreply, socket}
+  end
+
+  def show_results(_params, %{assigns: %{current_player_id: _player_id}} = socket) do
+    players = getCurrentPlayers(socket)
+    max_score = Enum.max_by(players, & &1.score)
+    winners =
+      players
+      |> Enum.filter(&(&1.score == max_score.score))
+      |> sortPlayers()
+
+    response = %{
+      scene: "results",
+      players: players,
+      winners: winners
+    }
+
+    send(self(), {:after_show_results, response})
+    {:noreply, socket}
+  end
+
+  def after_show_results(response, socket) do
+    broadcast!(socket, "results_display", response)
     {:noreply, socket}
   end
 
@@ -248,6 +321,42 @@ defmodule TriviaWeb.RoomChannel.Player do
     |> Repo.get(room_id)
     |> Room.changeset(%{current_scene: "answered"})
     |> Repo.update
+  end
+
+  defp removeCurrentQuestion(%{assigns: %{room_id: room_id}}, current_question, questions) do
+    Content.remove_question(current_question, questions, room_id)
+  end
+
+  defp resetPlayersAnswered(%{assigns: %{room_id: room_id}}) do
+    query =
+      from p in Player,
+      update: [set: [answered: false, answer: nil]],
+      where: p.room_id == ^room_id
+
+    Repo.update_all(query, [])
+  end
+
+  defp getRounds(%{assigns: %{room_id: room_id}}) do
+    query =
+      from r in Room,
+      select: r.rounds,
+      where: r.id == ^room_id
+
+    Repo.all(query)
+  end
+
+  defp reduceRounds(%{assigns: %{room_id: room_id}}) do
+    query =
+      from r in Room,
+      update: [inc: [rounds: -1]],
+      where: r.id == ^room_id
+
+    Repo.update_all(query, [])
+  end
+
+  defp sortPlayers(players) when is_list(players) do
+    players
+    |> Enum.sort(&(&1.score >= &2.score))
   end
 
   # Returns a random presence
