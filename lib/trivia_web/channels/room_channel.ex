@@ -18,7 +18,10 @@ defmodule TriviaWeb.RoomChannel do
   handle_incoming [
     :start_game,
     :select_category,
-    :select_option
+    :select_option,
+    :next_question,
+    :next_round,
+    :show_results
   ], with_module: Player
 
   handle_broadcasts [
@@ -26,6 +29,9 @@ defmodule TriviaWeb.RoomChannel do
     :after_start_game,
     :after_select_category,
     :after_select_option_waiting,
-    :after_select_option_done
+    :after_select_option_done,
+    :after_next_question,
+    :after_next_round,
+    :after_show_results
   ], with_module: Player
 end
