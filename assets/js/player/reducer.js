@@ -1,4 +1,4 @@
-import { JOIN_ROOM, RECEIVE_ERROR, CATEGORY_SELECT, QUESTION_DISPLAY, ANSWER_DISPLAY } from "./actions";
+import { JOIN_ROOM, RECEIVE_ERROR, CATEGORY_SELECT, QUESTION_DISPLAY, ANSWER_DISPLAY, RESULTS_DISPLAY } from "./actions";
 
 const initialState = {
   room: null,
@@ -27,9 +27,11 @@ const reducer = (state = initialState, action = {}) => {
         scene: action.scene,
         is_choosing: action.is_choosing,
         categories: action.categories,
+        questions: action.questions,
         current_question: action.current_question,
         error: null,
-        loading: false
+        loading: false,
+        rounds: action.rounds
       };
     case RECEIVE_ERROR:
       return {
@@ -55,9 +57,21 @@ const reducer = (state = initialState, action = {}) => {
       return {
         ...state,
         scene: action.scene,
+        questions: action.questions,
         current_question: action.current_question,
-        player: action.player,
-        answer: action.answer
+        player: action.newplayer,
+        answer: action.answer,
+        lead: action.lead,
+        rounds: action.rounds
+      };
+      case RESULTS_DISPLAY:
+        return {
+          ...state,
+          scene: action.scene,
+          players: action.players,
+          winners: action.winners,
+          is_winner: action.is_winner,
+          score: action.score
       };
     default:
       return state;
