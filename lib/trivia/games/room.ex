@@ -16,6 +16,7 @@ defmodule Trivia.Games.Room do
     field :category_choices, {:array, :string}, default: []
     field :questions, {:array, :map}, default: []
     field :current_question, :map, default: %{}
+    field :rounds, :integer
 
     belongs_to :game, Game
     belongs_to :user, User
@@ -26,7 +27,7 @@ defmodule Trivia.Games.Room do
 
   @doc false
   @required_fields [:game_id, :user_id, :max_players]
-  @valid_fields [:game_id, :user_id, :max_players, :current_scene, :chooser_id, :category_choices, :questions, :current_question]
+  @valid_fields [:game_id, :user_id, :max_players, :current_scene, :chooser_id, :category_choices, :questions, :current_question, :rounds]
   @valid_scenes ~w(game-start select-category answering answered leaderboard game-end)
   def changeset(room, attrs) do
     room
