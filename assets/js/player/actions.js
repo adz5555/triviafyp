@@ -4,10 +4,14 @@ export const RECEIVE_ERROR = "RECEIVE_ERROR";
 export const CATEGORY_SELECT = "CATEGORY_SELECT";
 export const QUESTION_DISPLAY = "QUESTION_DISPLAY";
 export const ANSWER_DISPLAY = "ANSWER_DISPLAY";
+export const RESULTS_DISPLAY = "RESULTS_DISPLAY";
 
 export const START_GAME = "START_GAME";
 export const SELECT_CATEGORY = "SELECT_CATEGORY";
 export const WAITING = "WAITING";
+export const NEXT_QUESTION = "NEXT_QUESTION";
+export const NEXT_ROUND = "NEXT_ROUND";
+export const SHOW_RESULTS = "SHOW_RESULTS";
 
 export const joinRoom = (socket, room_id) => {
   return dispatch => {
@@ -15,7 +19,7 @@ export const joinRoom = (socket, room_id) => {
 
     channel
       .join()
-      .receive("ok", ({ player, scene, is_choosing, categories, questions, current_question }) => {
+      .receive("ok", ({ player, scene, is_choosing, categories, questions, current_question, rounds }) => {
         dispatch({
           type: JOIN_ROOM,
           room: room_id,
@@ -25,7 +29,8 @@ export const joinRoom = (socket, room_id) => {
           is_choosing,
           categories,
           questions,
-          current_question
+          current_question,
+          rounds
         });
         setupGameEvents(channel, dispatch, player);
       })
@@ -62,9 +67,33 @@ export const startGame = channel => {
   };
 };
 
+export const newQuestion = channel => {
+  channel.push("next_question", {});
+
+  return {
+    type: NEXT_QUESTION
+  };
+};
+
+export const newRound = channel => {
+  channel.push("next_round", {});
+
+  return {
+    type: NEXT_ROUND
+  };
+};
+
+export const showResults = channel => {
+  channel.push("show_results", {});
+
+  return {
+    type: SHOW_RESULTS
+  };
+};
+
 const setupGameEvents = (channel, dispatch, player) => {
   channel.on("category_select", ({ scene, chooser, categories }) => {
-    const is_choosing = player.id == chooser.id
+    let is_choosing = player.id == chooser.id
 
     dispatch({
       type: CATEGORY_SELECT,
@@ -74,8 +103,8 @@ const setupGameEvents = (channel, dispatch, player) => {
     });
   });
 
-  channel.on("question_display", ({ allanswered, scene, category, questions, current_question, players }) => {
-    const answered = players.filter(playerobj => (
+  channel.on("question_display", ({ allanswered, scene, questions, current_question, players }) => {
+    let answered = players.filter(playerobj => (
       player.id == playerobj.id
     )).some(function(playerobj) {
         if (playerobj.answered === true) {
@@ -92,26 +121,54 @@ const setupGameEvents = (channel, dispatch, player) => {
       allanswered,
       players,
       answered,
-      category,
       questions,
       current_question
     });
   });
 
-  channel.on("answer_display", ({ scene, category, questions, current_question, players }) => {
-    const answer = players.filter(playerobj => (
+  channel.on("answer_display", ({ scene, questions, current_question, players, rounds }) => {
+    let answer = players.filter(playerobj => (
       player.id == playerobj.id
     )).map(function(playerobj) {
       return playerobj.answer;
     });
 
+    let lead = player.is_lead
+
+    let newplayer = players.filter(playerobj => (
+      player.id == playerobj.id
+    ))
+
     dispatch({
       type: ANSWER_DISPLAY,
       scene,
-      category,
       questions,
       current_question,
-      answer
+      answer,
+      newplayer,
+      lead,
+      rounds
+    });
+  });
+
+  channel.on("results_display", ({ scene, players, winners }) => {
+    let is_winner = winners.some(function(winner) {
+      return winner.id == player.id;
+    });
+
+    let score = players.filter(playerobj => (
+      player.id == playerobj.id
+    )).map(function(playerobj) {
+      return playerobj.score;
+    });
+
+    dispatch({
+      type: RESULTS_DISPLAY,
+      scene,
+      players,
+      winners,
+      is_winner,
+      score
     });
   });
 };
