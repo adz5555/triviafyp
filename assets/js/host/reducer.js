@@ -3,7 +3,8 @@ import {
   RECEIVE_ERROR,
   UPDATE_PARTICIPANTS,
   CATEGORY_SELECT,
-  QUESTION_DISPLAY
+  QUESTION_DISPLAY,
+  ANSWER_DISPLAY
 } from './actions'
 
 const initialState = {
@@ -61,6 +62,14 @@ const reducer = (state = initialState, action = {}) => {
         scene: action.scene,
         current_question: action.current_question
       };
+    case ANSWER_DISPLAY:
+      return {
+        ...state,
+        scene: action.scene,
+        questions: action.questions,
+        current_question: action.current_question,
+        players: action.players
+    };
     default:
       return state
   }
