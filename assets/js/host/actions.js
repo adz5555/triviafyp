@@ -8,6 +8,7 @@ export const UPDATE_PARTICIPANTS = 'UPDATE_PARTICIPANTS'
 // Game events
 export const CATEGORY_SELECT = 'CATEGORY_SELECT'
 export const QUESTION_DISPLAY = 'QUESTION_DISPLAY'
+export const ANSWER_DISPLAY = 'ANSWER_DISPLAY'
 
 export const joinRoom = (socket, room_id) => {
   return dispatch => {
@@ -71,6 +72,16 @@ const setupGameEvents = (channel, dispatch) => {
       category,
       questions,
       current_question
+    });
+  });
+
+  channel.on("answer_display", ({ scene, questions, current_question, players }) => {
+    dispatch({
+      type: ANSWER_DISPLAY,
+      scene,
+      questions,
+      current_question,
+      players
     });
   });
 }
