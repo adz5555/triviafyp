@@ -9,6 +9,7 @@ import { RoomCode } from "./components/Layout"
 import GameStart from './scenes/GameStart'
 import SelectCategory from "./scenes/SelectCategory";
 import Answering from "./scenes/Answering";
+import Answered from "./scenes/Answered";
 import Loading from '../common/Loading'
 import Switch from "../common/Switch";
 
@@ -34,9 +35,7 @@ class App extends Component {
           <GameStart scene="game-start" />
           <SelectCategory scene="select-category" />
           <Answering scene="answering" />
-          {/* TODO: voting */}
-          {/* TODO: leaderboard */}
-          {/* TODO: game-end */}
+          <Answered scene="answered" />
         </Switch>
         <RoomCode room_id={room_id} />
       </Grid>
