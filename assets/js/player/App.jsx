@@ -6,6 +6,7 @@ import GameStart from "./scenes/GameStart";
 import SelectCategory from "./scenes/SelectCategory";
 import Answering from "./scenes/Answering";
 import Answered from "./scenes/Answered";
+import Results from "./scenes/Results";
 import Loading from "../common/Loading";
 import Switch from "../common/Switch";
 
@@ -29,8 +30,7 @@ class App extends Component {
         <SelectCategory scene="select-category" />
         <Answering scene="answering" />
         <Answered scene="answered" />
-        {/* TODO: leaderboard */}
-        {/* TODO: game-end */}
+        <Results scene="results" />
       </Switch>
     );
   }
