@@ -112,6 +112,16 @@ defmodule Trivia.Content do
     Enum.random(questions)
   end
 
+  def remove_question(current_question, questions, room_id) do
+    questions = Enum.reject(questions, fn question ->
+      question["prompt"] == current_question["prompt"]
+    end)
+
+    add_to_db(questions, room_id)
+
+    questions
+  end
+
   def pick_random_questions(room_id, id) do
     request_questions(id)
     |> decode_questions()
